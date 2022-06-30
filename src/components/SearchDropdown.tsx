@@ -1,54 +1,13 @@
-import { ChangeEventHandler, FC, KeyboardEventHandler, useEffect, useRef, useState } from "react";
-import styles from './SearchDropdown.module.scss'
+import { FC, KeyboardEventHandler, useCallback, useEffect, useRef, useState } from "react";
+import styles from './SearchDropdown.module.scss';
 
-const list = [
-  "brazil",
-  "brilho",
-  "boo",
-  "ayyy",
+interface SearchDropdownProps {
+  search: (value: string) => Promise<string[]>;
+}
 
-  "Due",
-  "to",
-  "the",
-  "improv",
-  "nature",
-  "of",
-  "Critical",
-  "Role",
-  "other",
-  "RPG",
-  "content",
-  "on",
-  "our",
-  "channels,",
-  "themes",
-  "and",
-  "situations",
-  "that",
-  "occur",
-  "in-game",
-  "may",
-  "be",
-  "difficult",
-  "for",
-  "some",
-  "to",
-  "handle"
-];
-
-const search = async (text: string): Promise<string[]> => {
-  if (text === "") {
-    return [];
-  }
-
-  await new Promise<void>((resolve) => setTimeout(() => resolve(), 500));
-
-  return list.filter((item) => item.toLowerCase().includes(text.toLowerCase()));
-};
-
-export const SearchDropdown: FC = () => {
+export const SearchDropdown: FC<SearchDropdownProps> = ({ search }) => {
   const [options, setOptions] = useState<string[]>([]);
-  const [selectIndex, setSelectIndex] = useState(-1);
+  const [selectIndex, setSelectIndex] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -56,12 +15,30 @@ export const SearchDropdown: FC = () => {
   const listElementRefs = useRef<(HTMLLIElement | null)[]>([])
   const dropdownElement = useRef<HTMLUListElement>(null)
 
+  const update = useCallback(async (value: string) => {
+    setSearchText(value);
+    setIsLoading(true);
+    setOptions(await search(value));
+    setIsLoading(false);
+    setSelectIndex(0);
+  }, [search])
+
   useEffect(() => {
     const element = listElementRefs.current[selectIndex]
     if (element != null) {
-      element.scrollIntoView()
+      element.scrollIntoView({ block: 'center' })
     }
   }, [selectIndex])
+
+  // useEffect(() => {
+  //   setIsOpen(true)
+  // }, [isOpen])
+
+  useEffect(() => {
+    if (isOpen && options.length === 0) {
+      update(searchText)
+    }
+  }, [isOpen, options, searchText, update])
 
   const chooseOption = (optionIndex: number): void => {
     setSearchText(options[optionIndex]);
@@ -69,17 +46,11 @@ export const SearchDropdown: FC = () => {
     setIsOpen(false)
   };
 
-  const onChange: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    const { value } = e.target;
-    setSearchText(value);
-    setIsLoading(true);
-    setOptions(await search(value));
-    setIsLoading(false);
-    setSelectIndex(-1);
-  };
-
   const onKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
-    if (["ArrowUp", "ArrowDown", "Enter", "Escape"].every((key) => key !== e.key)) {
+    const isSpecialKey = ["ArrowUp", "ArrowDown", "Enter", "Escape"].some((key) => key === e.key)
+
+    // TODO: Allow `Enter` to submit the form if not open
+    if (!isSpecialKey) {
       setIsOpen(true)
       return;
     }
@@ -113,39 +84,58 @@ export const SearchDropdown: FC = () => {
 
   };
 
-  return <div className={`${styles.searchDropdown} ${isOpen ? styles.open : ''}`} onKeyDown={onKeyDown}>
-    <button className={styles.closeButton} onClick={() => {
-      setOptions([])
-      setIsOpen(false)
-    }}>close</button>
-    <label className={`${styles.field} ${isOpen ? styles.open : ''}`}>
+  return <div className={`${styles.container} ${isOpen ? styles.open : ''}`} onKeyDown={onKeyDown}>
+    <button
+      className={styles.closeButton}
+      onClick={() => {
+        setOptions([])
+        setIsOpen(false)
+      }}
+    >
+      close
+    </button>
+    <label className={`${styles.field} ${styles.onlyMobile}`}>
       <div>
         Search
       </div>
       <input
         onFocus={() => setIsOpen(true)}
         onClick={() => setIsOpen(true)}
-        onBlur={() => setOptions([])}
         type="text"
-        onChange={onChange}
+        onChange={e => update(e.target.value)}
         value={searchText}
       />
     </label>
-    {(options.length !== 0 || isLoading) && (
-      <ul className={styles.dropdown} ref={dropdownElement}>
-        {isLoading && <small>loading...</small>}
-        {options.map((option, i) => (
-          <li
-            tabIndex={-1}
-            ref={el => listElementRefs.current[i] = el}
-            key={option}
-            onMouseDown={() => chooseOption(i)}
-            className={`${i === selectIndex ? styles.selected : ''}`}
-          >
-            {option}
-          </li>
-        ))}
-      </ul>
+    <label className={`${styles.field} ${styles.exceptMobile}`}>
+      <div>
+        Search
+      </div>
+      <input
+        onFocus={() => setIsOpen(true)}
+        onClick={() => setIsOpen(true)}
+        onBlur={() => setIsOpen(false)}
+        type="text"
+        onChange={e => update(e.target.value)}
+        value={searchText}
+      />
+    </label>
+    {isOpen && (
+      <div className={styles.dropdownContainer}>
+        <ul className={styles.dropdown} ref={dropdownElement}>
+          {isLoading
+            ? <small>loading...</small>
+            : options.map((option, i) => (
+              <li
+                ref={el => listElementRefs.current[i] = el}
+                key={option}
+                onMouseDown={() => chooseOption(i)}
+                className={i === selectIndex ? styles.selected : ''}
+              >
+                {option}
+              </li>
+            ))}
+        </ul>
+      </div>
     )}
   </div>
 }

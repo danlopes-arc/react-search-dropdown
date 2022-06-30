@@ -1,18 +1,33 @@
-
 .field {
   display: flex;
   flex-direction: column;
+  padding: 10px;
+  background-color: gray;
+
+  &.onlyMobile {
+    @media (min-width: 768px) {
+      display: none;
+    }
+  }
+
+  &.exceptMobile {
+    display: none;
+
+    @media (min-width: 768px) {
+      display: flex;
+    }
+  }
 
   >input {
     padding: 10px;
   }
+  
 }
 
-.searchDropdown {
+.container {
   display: flex;
   flex-direction: column;
-  background-color: red;
-  padding: 20px;
+  position: relative;
 
   &.open {
     position: fixed;
@@ -20,6 +35,14 @@
     left: 0;
     right: 0;
     bottom: 0;
+    
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    
+    @media (min-width: 768px) {
+      background-color: transparent;
+      padding: 0;
+    }
   }
 
   @media (min-width: 768px) {
@@ -36,13 +59,25 @@
   }
 }
 
-.dropdown {
-  list-style: none;
+.dropdownContainer {
+  position: relative;
+  width: 100%;
   flex-grow: 1;
   overflow-y: auto;
   
   @media (min-width: 768px) {
     flex-grow: initial;
+    overflow-y: visible;
+  }
+}
+
+.dropdown {
+  list-style: none;
+  width: 100%;
+  
+  @media (min-width: 768px) {
+    position: absolute;
+    overflow-y: auto;
     max-height: 300px;
   }
 
