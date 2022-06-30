@@ -250,11 +250,12 @@ const list = [
 
 const search = async (text: string): Promise<string[]> => {
   const countryNames = list.map(country => country.name)
+
+  await new Promise<void>((resolve) => setTimeout(() => resolve(), 500));
+
   if (text === "") {
     return countryNames;
   }
-
-  await new Promise<void>((resolve) => setTimeout(() => resolve(), 500));
 
   return countryNames.filter((item) => item.toLowerCase().includes(text.toLowerCase()));
 };
@@ -267,7 +268,9 @@ export const App: FC = () => {
           e.preventDefault()
           console.log('sent!')
         }}>
+        <input type="text" placeholder='this is an input' />
         <SearchDropdown search={search} />
+        <input type="text" placeholder='this is another input' />
         <input type="submit" value="send" />
       </form>
     </div>

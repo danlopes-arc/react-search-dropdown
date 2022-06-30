@@ -4,9 +4,10 @@
 }
 
 .form {
-  width: 100%;
+  width: auto;
   display: flex;
   flex-direction: column;
-  // padding: 50px;
+  padding: 20px;
+  gap: 10px;
 }
 

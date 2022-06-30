@@ -1,3 +1,5 @@
+$container-lg-p: 0px;
+
 .container {
   display: flex;
   flex-direction: column;
@@ -10,17 +12,15 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
-    padding: 20px;
   }
 
   @media (min-width: 768px) {
     display: block;
-    padding: 0;
+    padding: $container-lg-p;
 
     &.open {
-      position: initial;
+      position: relative;
       background-color: transparent;
-      padding: 0;
     }
   }
 }
@@ -52,10 +52,11 @@ input {
 
 ul {
   list-style: none;
-  width: 100%;
+  width: calc(100% - $container-lg-p * 2);
 
   flex-grow: 1;
   overflow-y: auto;
+  box-shadow: none;
   
   @media (min-width: 768px) {
     position: absolute;

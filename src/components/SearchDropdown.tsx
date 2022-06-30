@@ -6,7 +6,7 @@ interface SearchDropdownProps {
 }
 
 export const SearchDropdown: FC<SearchDropdownProps> = ({ search }) => {
-  const [options, setOptions] = useState<string[]>([]);
+  const [options, setOptions] = useState<string[] | null>(null);
   const [selectIndex, setSelectIndex] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -30,19 +30,23 @@ export const SearchDropdown: FC<SearchDropdownProps> = ({ search }) => {
     }
   }, [selectIndex])
 
-  // useEffect(() => {
-  //   setIsOpen(true)
-  // }, [isOpen])
+  useEffect(() => {
+    setIsOpen(true)
+  }, [isOpen])
 
   useEffect(() => {
-    if (isOpen && options.length === 0) {
+    if (isOpen && options == null) {
       update(searchText)
     }
   }, [isOpen, options, searchText, update])
 
   const chooseOption = (optionIndex: number): void => {
+    if (options == null) {
+      return
+    }
+
     setSearchText(options[optionIndex]);
-    setOptions([]);
+    // setOptions([]);
     setIsOpen(false)
   };
 
@@ -51,26 +55,42 @@ export const SearchDropdown: FC<SearchDropdownProps> = ({ search }) => {
 
     // TODO: Allow `Enter` to submit the form if not open
     if (!isSpecialKey) {
-      setIsOpen(true)
+      // setIsOpen(true)
       return;
+    }
+
+    if (!isOpen) {
+      if (e.key === 'ArrowDown') {
+        setIsOpen(true)
+      }
+      return
     }
 
     e.preventDefault();
 
     if (e.key === "Escape") {
-      setOptions([]);
+      // setOptions([]);
       setIsOpen(false)
       return
-    }
-
-    if (options.length === 0) {
-      return;
     }
 
     if (e.key === "ArrowUp" && selectIndex > 0) {
       setSelectIndex(selectIndex - 1);
       return;
     }
+
+    if (options == null || options.length === 0) {
+      if (e.key === "Enter") {
+        setIsOpen(false)
+      }
+      return;
+    }
+
+    if (e.key === "ArrowUp" && selectIndex === 0) {
+      setIsOpen(false);
+      return;
+    }
+
 
     if (e.key === "ArrowDown" && selectIndex < options.length - 1) {
       setSelectIndex(selectIndex + 1);
@@ -88,7 +108,7 @@ export const SearchDropdown: FC<SearchDropdownProps> = ({ search }) => {
     <button
       className={styles.closeButton}
       onClick={() => {
-        setOptions([])
+        // setOptions([])
         setIsOpen(false)
       }}
     >
@@ -99,11 +119,14 @@ export const SearchDropdown: FC<SearchDropdownProps> = ({ search }) => {
         Search
       </div>
       <input
+        type="text"
+        value={searchText}
         onFocus={() => setIsOpen(true)}
         onClick={() => setIsOpen(true)}
-        type="text"
-        onChange={e => update(e.target.value)}
-        value={searchText}
+        onChange={e => {
+          setIsOpen(true)
+          update(e.target.value)
+        }}
       />
     </label>
     <label className={`${styles.field} ${styles.exceptMobile}`}>
@@ -111,19 +134,22 @@ export const SearchDropdown: FC<SearchDropdownProps> = ({ search }) => {
         Search
       </div>
       <input
+        type="text"
+        value={searchText}
         onFocus={() => setIsOpen(true)}
         onClick={() => setIsOpen(true)}
         onBlur={() => setIsOpen(false)}
-        type="text"
-        onChange={e => update(e.target.value)}
-        value={searchText}
+        onChange={e => {
+          setIsOpen(true)
+          update(e.target.value)
+        }}
       />
     </label>
     {isOpen && (
       <ul ref={dropdownElement}>
         {isLoading
           ? <small>loading...</small>
-          : options.map((option, i) => (
+          : options?.map((option, i) => (
             <li
               ref={el => listElementRefs.current[i] = el}
               key={option}
