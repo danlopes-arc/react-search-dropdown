@@ -120,22 +120,20 @@ export const SearchDropdown: FC<SearchDropdownProps> = ({ search }) => {
       />
     </label>
     {isOpen && (
-      <div className={styles.dropdownContainer}>
-        <ul className={styles.dropdown} ref={dropdownElement}>
-          {isLoading
-            ? <small>loading...</small>
-            : options.map((option, i) => (
-              <li
-                ref={el => listElementRefs.current[i] = el}
-                key={option}
-                onMouseDown={() => chooseOption(i)}
-                className={i === selectIndex ? styles.selected : ''}
-              >
-                {option}
-              </li>
-            ))}
-        </ul>
-      </div>
+      <ul ref={dropdownElement}>
+        {isLoading
+          ? <small>loading...</small>
+          : options.map((option, i) => (
+            <li
+              ref={el => listElementRefs.current[i] = el}
+              key={option}
+              onMouseDown={() => chooseOption(i)}
+              className={i === selectIndex ? styles.selected : ''}
+            >
+              {option}
+            </li>
+          ))}
+      </ul>
     )}
   </div>
 }
